@@ -109,16 +109,7 @@ const SquareGrid: React.FC<SquareGridProps> = ({ squares, squareSize, gap }) => 
               onClick={() => setActiveSquare(isActive ? null : index)}
               onMouseEnter={() => !isActive && setActiveSquare(index)}
               onMouseLeave={() => !isActive && setActiveSquare(null)}
-            >
-              <div
-                className={`w-full h-full flex items-center justify-center transition-opacity duration-200
-                         ${isActive ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <span className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-                  #{index + 1}
-                </span>
-              </div>
-            </div>
+            />
           );
         })}
       </div>
