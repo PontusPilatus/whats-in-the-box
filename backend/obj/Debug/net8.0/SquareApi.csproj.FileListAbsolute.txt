@@ -32,3 +32,4 @@ C:\Users\pauls\repos\Cursor\whats-in-the-box\backend\obj\Debug\net8.0\refint\Squ
 C:\Users\pauls\repos\Cursor\whats-in-the-box\backend\obj\Debug\net8.0\SquareApi.pdb
 C:\Users\pauls\repos\Cursor\whats-in-the-box\backend\obj\Debug\net8.0\SquareApi.genruntimeconfig.cache
 C:\Users\pauls\repos\Cursor\whats-in-the-box\backend\obj\Debug\net8.0\ref\SquareApi.dll
+C:\Users\pauls\repos\Cursor\whats-in-the-box\backend\bin\Debug\net8.0\Data\squareState.json
