@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 
 interface SquareGridProps {
-  squares: { color: string }[];
+  squares: { color: string; originalColor?: string }[];
   squareSize: number;
   gap: number;
 }
 
 const SquareGrid: React.FC<SquareGridProps> = ({ squares, squareSize, gap }) => {
   const [activeSquare, setActiveSquare] = useState<number | null>(null);
+  const [clickedSquare, setClickedSquare] = useState<number | null>(null);
 
   // Calculate positions of each square based on the layer pattern
   const calculateSquarePositions = () => {
@@ -50,13 +51,7 @@ const SquareGrid: React.FC<SquareGridProps> = ({ squares, squareSize, gap }) => 
 
   if (squares.length === 0) {
     return (
-      <div style={{
-        padding: '20px',
-        color: '#6366F1',
-        fontStyle: 'italic',
-        textAlign: 'center',
-        marginTop: '20px'
-      }}>
+      <div className="text-center py-8 text-indigo-600 italic">
         This party needs some guests! Click "One more!" to invite some blocks!
       </div>
     );
@@ -84,6 +79,17 @@ const SquareGrid: React.FC<SquareGridProps> = ({ squares, squareSize, gap }) => 
 
   const { width, height } = getActualSize();
 
+  // Handle square click
+  const handleSquareClick = (index: number) => {
+    if (clickedSquare === index) {
+      // If this square is already clicked, unselect it
+      setClickedSquare(null);
+    } else {
+      // Otherwise select this square
+      setClickedSquare(index);
+    }
+  };
+
   return (
     <div className="w-full flex justify-center pt-8">
       <div
@@ -92,7 +98,8 @@ const SquareGrid: React.FC<SquareGridProps> = ({ squares, squareSize, gap }) => 
       >
         {squares.map((square, index) => {
           const position = positions[index];
-          const isActive = activeSquare === index;
+          // A square is active if it's either being hovered over or clicked
+          const isActive = activeSquare === index || clickedSquare === index;
 
           return (
             <div
@@ -106,9 +113,9 @@ const SquareGrid: React.FC<SquareGridProps> = ({ squares, squareSize, gap }) => 
                 left: `${position.x * (squareSize + gap)}px`,
                 top: `${position.y * (squareSize + gap)}px`,
               }}
-              onClick={() => setActiveSquare(isActive ? null : index)}
-              onMouseEnter={() => !isActive && setActiveSquare(index)}
-              onMouseLeave={() => !isActive && setActiveSquare(null)}
+              onClick={() => handleSquareClick(index)}
+              onMouseEnter={() => setActiveSquare(index)}
+              onMouseLeave={() => setActiveSquare(null)}
             />
           );
         })}
