@@ -13,7 +13,7 @@ namespace SquareApi.Services
       _filePath = configuration["SquareStateFilePath"] ?? "squareState.json";
       _logger = logger;
 
-      // Ensure the file exists
+      // Create file if it doesn't exist
       if (!File.Exists(_filePath))
       {
         File.WriteAllText(_filePath, JsonSerializer.Serialize(new SquareState()));

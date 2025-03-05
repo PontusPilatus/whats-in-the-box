@@ -1,101 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import SquareGrid from './SquareGrid';
+import {
+  calculateSquarePositions,
+  getAdjacentSquares,
+  generateRandomColor,
+  generateDifferentColor,
+  apiRequest,
+  Square,
+  SquareState
+} from './utils';
 
-// API service
-const apiUrl = 'https://localhost:7107/api/Square'; // Update with your actual API URL
-const API_TIMEOUT = 5000; // 5 second timeout
-
-async function fetchSquares() {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
-
-    const response = await fetch(apiUrl, {
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch squares');
-    }
-
-    const data = await response.json();
-    return data.squares || [];
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.error('Request timed out while fetching squares');
-    } else {
-      console.error('Error fetching squares:', error);
-    }
-    return [];
-  }
-}
-
-async function saveSquare(square: { color: string; originalColor?: string }) {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
-
-    const response = await fetch(`${apiUrl}/add`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(square),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error('Failed to save square');
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.error('Request timed out while saving square');
-    } else {
-      console.error('Error saving square:', error);
-    }
-    throw error;
-  }
-}
-
-async function clearAllSquares() {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
-
-    const response = await fetch(apiUrl, {
-      method: 'DELETE',
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error('Failed to clear squares');
-    }
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.error('Request timed out while clearing squares');
-    } else {
-      console.error('Error clearing squares:', error);
-    }
-    throw error;
-  }
-}
+// API service config
+const apiUrl = 'http://localhost:5024/api/Square';
+const API_TIMEOUT = 5000;
 
 function App() {
-  const [squares, setSquares] = useState<Array<{ color: string; originalColor?: string }>>([]);
+  const [squares, setSquares] = useState<Square[]>([]);
   const [discoMode, setDiscoMode] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [lastColor, setLastColor] = useState<string | null>(null);
+  const [apiAvailable, setApiAvailable] = useState<boolean>(true);
   const squareSize = 60;
   const gap = 5;
   const discoThreshold = 25; // Show disco mode button after this many squares
+
+  /**
+   * Fetch all squares from the API
+   */
+  const fetchSquares = async (): Promise<Square[]> => {
+    try {
+      const data = await apiRequest<SquareState>(apiUrl, {}, API_TIMEOUT);
+      return data.squares || []; // Extract squares array from SquareState
+    } catch (error) {
+      console.error('Error fetching squares from API:', error);
+      setApiAvailable(false);
+      return []; // Return empty array if API is unreachable
+    }
+  };
+
+  /**
+   * Save a square to the API
+   */
+  const saveSquare = async (square: Square): Promise<any> => {
+    if (!apiAvailable) return Promise.resolve(); // Skip API calls if offline
+
+    try {
+      return await apiRequest<any>(
+        `${apiUrl}/add`,
+        {
+          method: 'POST',
+          body: square
+        },
+        API_TIMEOUT
+      );
+    } catch (error) {
+      console.error('Error saving square:', error);
+      setApiAvailable(false);
+      return Promise.resolve(); // Resolve promise even when API fails
+    }
+  };
+
+  /**
+   * Clear all squares from the API
+   */
+  const clearAllSquares = async (): Promise<void> => {
+    if (!apiAvailable) return Promise.resolve(); // Skip API calls if offline
+
+    try {
+      await apiRequest(
+        apiUrl,
+        {
+          method: 'DELETE'
+        },
+        API_TIMEOUT,
+        'Failed to clear squares'
+      );
+    } catch (error) {
+      console.error('Failed to clear squares from backend:', error);
+      setApiAvailable(false);
+    }
+  };
 
   // Load initial state from API
   useEffect(() => {
@@ -106,6 +90,7 @@ function App() {
         setSquares(loadedSquares);
       } catch (error) {
         console.error('Error loading initial state:', error);
+        setApiAvailable(false);
       } finally {
         setIsLoading(false);
       }
@@ -114,55 +99,40 @@ function App() {
     loadSquares();
   }, []);
 
-  // Generate a random color different from the last color
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-
-    // Generate a new color
-    do {
-      color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      // Keep generating until we get a color different from the last one
-    } while (color === lastColor);
-
-    // Save this as the last color for next time
-    setLastColor(color);
-    return color;
-  };
-
   // Add a new square with a random color
   const createSquare = async () => {
-    const newColor = getRandomColor();
+    // Generate a color different from both the lastColor state and the last square's color
+    const prevSquareColor = squares.length > 0 ? squares[squares.length - 1].color : null;
+
+    let newColor;
+    do {
+      newColor = generateRandomColor();
+    } while (newColor === lastColor || newColor === prevSquareColor);
+
+    setLastColor(newColor);
     const newSquare = { color: newColor, originalColor: newColor };
 
-    // Update UI immediately (optimistic update)
+    // Optimistic UI update
     setSquares(prevSquares => [...prevSquares, newSquare]);
 
-    // Then save to backend without blocking the UI
     try {
       await saveSquare(newSquare);
-      // No need to update state again as we've already done it optimistically
     } catch (error) {
-      console.error('Failed to create square:', error);
-      // We already updated the UI, so no need to handle the error for UI purposes
+      console.error('Failed to save square to backend:', error);
+      // Error is already handled in saveSquare
     }
   };
 
   // Clear all squares
   const clearSquares = async () => {
-    // Update UI immediately
     setSquares([]);
     setDiscoMode(false);
 
-    // Then clear on backend without blocking the UI
     try {
       await clearAllSquares();
     } catch (error) {
-      console.error('Failed to clear squares:', error);
-      // UI is already cleared, so no need for error handling for UI purposes
+      console.error('Failed to clear squares from backend:', error);
+      // Error is already handled in clearAllSquares
     }
   };
 
@@ -171,20 +141,32 @@ function App() {
     setDiscoMode(!discoMode);
   };
 
-  // Disco mode effect - change square colors periodically
+  // Disco mode - change square colors periodically
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (discoMode && squares.length > 0) {
       interval = setInterval(() => {
-        setSquares(squares.map(square => ({
-          ...square,
-          color: getRandomColor(),
-          originalColor: square.originalColor || square.color
-        })));
+        const positions = calculateSquarePositions(squares.length);
+        const newSquares = [...squares];
+
+        // Update each square's color, avoiding adjacent squares having the same color
+        for (let i = 0; i < newSquares.length; i++) {
+          const adjacentIndices = getAdjacentSquares(i, positions);
+          const colorsToAvoid = adjacentIndices.map(idx => newSquares[idx].color);
+
+          const originalColor = newSquares[i].originalColor;
+          if (originalColor) {
+            colorsToAvoid.push(originalColor);
+          }
+
+          newSquares[i].color = generateDifferentColor(colorsToAvoid);
+        }
+
+        setSquares(newSquares);
       }, 500);
     } else if (!discoMode && squares.length > 0) {
-      // Restore original colors when disco mode is turned off
+      // Restore original colors
       setSquares(squares.map(square => ({
         ...square,
         color: square.originalColor || square.color
@@ -216,6 +198,11 @@ function App() {
         <p className="mt-2 text-sm text-slate-200">
           Where colorful squares dance in a spiral!
         </p>
+        {!apiAvailable && (
+          <p className="mt-1 text-xs bg-yellow-600 text-white py-1 px-2 rounded mx-auto inline-block">
+            Offline Mode - Changes won't be saved
+          </p>
+        )}
       </header>
 
       <main className={`flex-grow p-8 flex flex-col items-center transition-colors duration-500 ${discoMode ? 'bg-gray-900' : 'bg-slate-50'}`}>
@@ -228,22 +215,22 @@ function App() {
           <>
             <div className="mb-5 flex gap-4 justify-center flex-wrap">
               <button
-                className="px-4 py-3 w-40 rounded-lg text-white font-medium border-none shadow-md bg-green-500 cursor-pointer transition duration-200 flex items-center justify-center hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-1"
+                className="px-5 py-4 rounded-full text-white font-bold text-lg border-none shadow-lg bg-gradient-to-r from-green-400 to-teal-500 cursor-pointer transition-all duration-300 flex items-center justify-center hover:shadow-xl transform hover:-translate-y-2 hover:scale-110"
                 onClick={createSquare}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                 </svg>
-                One more!
+                BOOM! New Block
               </button>
               <button
-                className="px-4 py-3 w-40 rounded-lg text-white font-medium border-none shadow-md bg-red-500 cursor-pointer transition duration-200 flex items-center justify-center hover:bg-red-600 hover:shadow-lg transform hover:-translate-y-1"
+                className="px-5 py-4 rounded-full text-white font-bold text-lg border-none shadow-lg bg-gradient-to-r from-pink-500 to-purple-500 cursor-pointer transition-all duration-300 flex items-center justify-center hover:shadow-xl transform hover:-translate-y-2 hover:scale-110"
                 onClick={clearSquares}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
-                Clear all
+                ZAP! All Gone
               </button>
             </div>
 
@@ -258,14 +245,16 @@ function App() {
                 {squares.length >= discoThreshold && (
                   <div className="mt-8 flex justify-center">
                     <button
-                      className={`px-6 py-4 rounded-lg text-white font-medium border-none shadow-md cursor-pointer transition duration-300 flex items-center justify-center transform hover:-translate-y-1 hover:shadow-lg ${discoMode ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-purple-600 hover:bg-purple-700'} ${!discoMode && 'animate-pulse'}`}
+                      className={`px-6 py-5 rounded-full text-xl font-bold border-4 shadow-xl cursor-pointer transition-all duration-300 flex items-center justify-center transform hover:rotate-3 hover:scale-105 ${discoMode
+                        ? 'bg-yellow-400 text-purple-900 border-yellow-300 hover:bg-yellow-300'
+                        : 'bg-purple-600 text-white border-purple-500 hover:bg-purple-500'} ${!discoMode && 'animate-pulse'}`}
                       onClick={toggleDiscoMode}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-3" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
                       </svg>
-                      <span className="text-lg">
-                        {discoMode ? 'Lights On' : 'Turn On Disco Mode!'}
+                      <span>
+                        {discoMode ? '🔆 LIGHTS UP 🔆' : '✨ DISCO FEVER ✨'}
                       </span>
                     </button>
                   </div>
@@ -279,13 +268,13 @@ function App() {
                   </svg>
                   <h2 className={`text-xl font-bold ${discoMode ? 'text-white' : 'text-gray-800'} mb-2`}>No blocks yet!</h2>
                   <p className={`${discoMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
-                    Click the "One more!" button to start creating your colorful spiral pattern.
+                    Click the "BOOM! New Block" button to start creating your colorful spiral pattern.
                   </p>
                   <button
-                    className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+                    className="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-lg font-bold hover:from-indigo-600 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-2 hover:scale-110"
                     onClick={createSquare}
                   >
-                    Get started
+                    Let's Party! 🎊
                   </button>
                 </div>
               </div>
@@ -311,4 +300,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; 

@@ -5,15 +5,13 @@ using SquareApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Register SquareStateService
 builder.Services.AddSingleton<SquareStateService>();
 
-// Add CORS policy
+// CORS policy
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowReactApp",
@@ -27,7 +25,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure HTTP pipeline
 if (app.Environment.IsDevelopment())
 {
   app.UseSwagger();

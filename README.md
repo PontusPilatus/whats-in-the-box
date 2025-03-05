@@ -8,10 +8,11 @@ Welcome to the hottest shindig in town! Block Party is where colorful squares co
 
 ## 🎮 How to Join the Fun
 
-1. Click **"One more!"** to invite a colorful square to the party
+1. Click **"BOOM! New Block"** to invite a colorful square to the party
 2. Watch as each new guest finds their perfect spot in the spiral
 3. Click on any square to make it pop and see its party number
-4. Had enough fun? Click **"Enough!"** to clear the dance floor
+4. Had enough fun? Click **"ZAP! All Gone"** to clear the dance floor
+5. Once you've got 25+ squares, unlock **"DISCO FEVER"** mode for extra wildness!
 
 ## 🌈 Features That Make This Party Rock
 
@@ -19,23 +20,24 @@ Welcome to the hottest shindig in town! Block Party is where colorful squares co
 - **Spiral Formation**: Squares arrange themselves in an eye-catching spiral
 - **Interactive Fun**: Hover and click on squares to see them groove
 - **Party Stats**: Fun messages keep you updated on how lit the party is!
+- **Offline Mode**: The party never stops - even when you lose connection to the backend!
 
 ## 🔧 Tech Stuff (Because Even Parties Need Structure)
 
 This project is built with:
 - React
 - TypeScript
-- CSS-in-JS styling
+- Tailwind CSS for styling
 - A whole lot of good vibes
 
 ## 🚀 Getting Started
 
 ```bash
 # Clone the party venue
-git clone https://github.com/yourusername/block-party.git
+git clone https://github.com/yourusername/whats-in-the-box.git
 
 # Head to the party
-cd block-party
+cd whats-in-the-box
 
 # Install the party supplies
 npm install
@@ -54,7 +56,7 @@ This fun little project was created with love and a healthy dose of whimsy. Feel
 
 ---
 
-*Remember: Every party needs more squares! Keep clicking "One more!" until the dance floor is packed!*
+*Remember: Every party needs more squares! Keep clicking "BOOM! New Block" until the dance floor is packed!*
 
 # Block Party
 
@@ -67,6 +69,7 @@ A fun interactive application where colorful squares dance in a spiral pattern. 
 - Hover effects for interaction
 - Disco mode (unlocks after 25 squares)
 - Persistence via backend API
+- Offline mode support - works even without backend connection
 
 ## Tech Stack
 
@@ -74,6 +77,7 @@ A fun interactive application where colorful squares dance in a spiral pattern. 
 - React with TypeScript
 - Tailwind CSS for styling
 - Modern React hooks and patterns
+- Graceful degradation for offline use
 
 ### Backend
 - .NET 8.0 / C# Web API
@@ -118,15 +122,16 @@ A fun interactive application where colorful squares dance in a spiral pattern. 
 
 ## How It Works
 
-- When you click "One more!", a new square with a random color is created
+- When you click "BOOM! New Block", a new square with a random color is created
 - The square's position and color are sent to the backend API for storage
 - When the page is refreshed, the application retrieves the previously saved state
 - Squares are arranged in a spiral pattern, calculated based on their position in the sequence
 - After adding 25 squares, you unlock disco mode, which makes the squares flash with different colors
+- If the backend is unavailable, the app will switch to offline mode and continue to function
 
 ## Project Structure
 
 - `/frontend` - React frontend application
 - `/backend` - .NET/C# backend API
 
-*Remember: Every party needs more squares! Keep clicking "One more!" until the dance floor is packed!* 
+*Remember: Every party needs more squares! Keep clicking "BOOM! New Block" until the dance floor is packed!* 
