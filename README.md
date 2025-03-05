@@ -6,6 +6,8 @@
 
 Welcome to the hottest shindig in town! Block Party is where colorful squares come to hang out, mingle, and arrange themselves in a funky spiral pattern. No square is too square for this party!
 
+A fun interactive application built with React for the frontend and .NET/C# for the backend.
+
 ## 🎮 How to Join the Fun
 
 1. Click **"BOOM! New Block"** to invite a colorful square to the party
@@ -57,10 +59,6 @@ This fun little project was created with love and a healthy dose of whimsy. Feel
 ---
 
 *Remember: Every party needs more squares! Keep clicking "BOOM! New Block" until the dance floor is packed!*
-
-# Block Party
-
-A fun interactive application where colorful squares dance in a spiral pattern. Built with React for the frontend and .NET/C# for the backend.
 
 ## Features
 
