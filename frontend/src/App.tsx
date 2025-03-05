@@ -26,22 +26,6 @@ function App() {
     setSquares([]);
   };
 
-  // Common button style
-  const buttonStyle = {
-    padding: '12px 16px',
-    width: '160px',
-    borderRadius: '8px',
-    color: 'white',
-    fontWeight: '500',
-    border: 'none',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  };
-
   // Fun messages for square count
   const getSquareCountMessage = (count: number) => {
     if (count === 1) return "Just one square at this party so far!";
@@ -54,83 +38,68 @@ function App() {
   };
 
   return (
-    <div style={{ textAlign: 'center', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif' }}>
-      <header style={{
-        background: 'linear-gradient(90deg, #6366F1 0%, #8B5CF6 100%)',
-        padding: '24px 0',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        <h1 style={{ margin: 0, fontSize: '2.2rem', color: 'white', fontWeight: 'bold' }}>
+    <div className="text-center min-h-screen flex flex-col font-sans">
+      <header className="bg-gradient-to-r from-indigo-500 to-purple-500 py-6 shadow-md">
+        <h1 className="m-0 text-4xl text-white font-bold">
           Block Party
         </h1>
-        <p style={{ marginTop: '8px', fontSize: '0.95rem', color: '#E2E8F0' }}>
+        <p className="mt-2 text-sm text-slate-200">
           Where colorful squares dance in a spiral!
         </p>
       </header>
 
-      <main style={{
-        flexGrow: 1,
-        padding: '32px 16px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        backgroundColor: '#F7FAFC'
-      }}>
-        <div style={{
-          marginBottom: '20px',
-          display: 'flex',
-          gap: '16px',
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
+      <main className="flex-grow p-8 flex flex-col items-center bg-slate-50">
+        <div className="mb-5 flex gap-4 justify-center flex-wrap">
           <button
-            style={{
-              ...buttonStyle,
-              backgroundColor: '#48BB78',
-            }}
+            className="px-4 py-3 w-40 rounded-lg text-white font-medium border-none shadow bg-green-500 cursor-pointer transition duration-200 flex items-center justify-center hover:bg-green-600"
             onClick={createSquare}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" style={{ height: '20px', width: '20px', marginRight: '8px' }} viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
             </svg>
             One more!
           </button>
           <button
-            style={{
-              ...buttonStyle,
-              backgroundColor: '#F56565',
-            }}
+            className="px-4 py-3 w-40 rounded-lg text-white font-medium border-none shadow bg-red-500 cursor-pointer transition duration-200 flex items-center justify-center hover:bg-red-600"
             onClick={clearSquares}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" style={{ height: '20px', width: '20px', marginRight: '8px' }} viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
-            Enough!
+            Clear all
           </button>
         </div>
 
-        {squares.length > 0 && (
-          <div style={{ color: '#4A5568', marginBottom: '10px', fontSize: '0.875rem', fontWeight: '500' }}>
-            {getSquareCountMessage(squares.length)}
+        {squares.length > 0 ? (
+          <div className="w-full max-w-4xl">
+            <p className="text-lg text-center mb-6 text-gray-700 font-medium">
+              {getSquareCountMessage(squares.length)}
+            </p>
+            <SquareGrid squares={squares} squareSize={squareSize} gap={gap} />
+          </div>
+        ) : (
+          <div className="text-center p-10 max-w-md mx-auto">
+            <div className="bg-indigo-50 rounded-xl p-8 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-indigo-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+              </svg>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">No blocks yet!</h2>
+              <p className="text-gray-600 mb-4">
+                Click the "One more!" button to start creating your colorful spiral pattern.
+              </p>
+              <button
+                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition duration-200 shadow-sm"
+                onClick={createSquare}
+              >
+                Get started
+              </button>
+            </div>
           </div>
         )}
-
-        <div style={{ padding: '0 20px' }}>
-          <SquareGrid
-            squares={squares}
-            squareSize={squareSize}
-            gap={gap}
-          />
-        </div>
       </main>
 
-      <footer style={{
-        backgroundColor: '#4A4E69',
-        color: '#CBD5E0',
-        padding: '16px',
-        fontSize: '0.75rem'
-      }}>
-        <p>Keep the party going! 🎉</p>
+      <footer className="py-4 text-center text-gray-600 bg-gray-100 text-sm">
+        <p>Made with Tailwind CSS</p>
       </footer>
     </div>
   );

@@ -62,86 +62,66 @@ const SquareGrid: React.FC<SquareGridProps> = ({ squares, squareSize, gap }) => 
     );
   }
 
-  // Find the maximum x and y values to determine the actual size needed
+  // Calculate the actual size needed for the container
   const getActualSize = () => {
     if (positions.length === 0) return { width: 0, height: 0 };
 
     let maxX = 0;
     let maxY = 0;
 
-    positions.forEach(pos => {
-      maxX = Math.max(maxX, pos.x);
-      maxY = Math.max(maxY, pos.y);
-    });
+    // Find the maximum coordinates
+    for (const position of positions) {
+      if (position.x > maxX) maxX = position.x;
+      if (position.y > maxY) maxY = position.y;
+    }
 
-    // Add 1 because positions are 0-indexed
-    return {
-      width: (maxX + 1) * (squareSize + gap) - gap,
-      height: (maxY + 1) * (squareSize + gap) - gap
-    };
+    // Calculate the actual dimensions
+    const width = (maxX + 1) * (squareSize + gap) - gap;
+    const height = (maxY + 1) * (squareSize + gap) - gap;
+
+    return { width, height };
   };
 
   const { width, height } = getActualSize();
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        margin: '0 auto',
-        width: `${width}px`,
-        height: `${height}px`,
-        marginTop: '10px'
-      }}
-    >
-      {squares.map((square, index) => {
-        const position = positions[index] || { x: 0, y: 0 };
-        const isActive = activeSquare === index;
+    <div className="w-full flex justify-center pt-8">
+      <div
+        className="relative"
+        style={{ width: `${width}px`, height: `${height}px` }}
+      >
+        {squares.map((square, index) => {
+          const position = positions[index];
+          const isActive = activeSquare === index;
 
-        return (
-          <div
-            key={index}
-            style={{
-              backgroundColor: square.color,
-              width: `${squareSize}px`,
-              height: `${squareSize}px`,
-              position: 'absolute',
-              left: `${position.x * (squareSize + gap)}px`,
-              top: `${position.y * (squareSize + gap)}px`,
-              borderRadius: '8px',
-              boxShadow: isActive
-                ? '0 10px 25px rgba(0, 0, 0, 0.2)'
-                : '0 4px 6px rgba(0, 0, 0, 0.1)',
-              transform: isActive ? 'scale(1.1)' : 'scale(1)',
-              transition: 'all 0.3s ease-in-out',
-              zIndex: isActive ? 20 : 'auto',
-              cursor: 'pointer'
-            }}
-            onClick={() => setActiveSquare(isActive ? null : index)}
-            onMouseEnter={() => !isActive && setActiveSquare(index)}
-            onMouseLeave={() => !isActive && setActiveSquare(null)}
-          >
-            <div style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: isActive ? 1 : 0,
-              transition: 'opacity 0.2s'
-            }}>
-              <span style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                color: 'white',
-                fontSize: '0.75rem',
-                padding: '4px 8px',
-                borderRadius: '9999px'
-              }}>
-                #{index + 1}
-              </span>
+          return (
+            <div
+              key={index}
+              className={`absolute rounded-lg shadow transition-all duration-300 ease-in-out cursor-pointer
+                        ${isActive ? 'shadow-xl z-20 scale-110' : 'shadow-md z-10 scale-100'}`}
+              style={{
+                backgroundColor: square.color,
+                width: `${squareSize}px`,
+                height: `${squareSize}px`,
+                left: `${position.x * (squareSize + gap)}px`,
+                top: `${position.y * (squareSize + gap)}px`,
+              }}
+              onClick={() => setActiveSquare(isActive ? null : index)}
+              onMouseEnter={() => !isActive && setActiveSquare(index)}
+              onMouseLeave={() => !isActive && setActiveSquare(null)}
+            >
+              <div
+                className={`w-full h-full flex items-center justify-center transition-opacity duration-200
+                         ${isActive ? 'opacity-100' : 'opacity-0'}`}
+              >
+                <span className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
+                  #{index + 1}
+                </span>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };
